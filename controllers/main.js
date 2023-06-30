@@ -25,7 +25,7 @@ const dashBoard = async (req, res) => {
   const authHeaders = req.headers.authorization;
 
   // creating an array of the token string ["bearer", "token"]
-  const authArray = authHeaders.split(" ").join(",");
+  const authArray = authHeaders.split(" ");
 
   // if authHeaders is not present or authArray does not include token then throw error
   if (!authHeaders || authArray.includes(null)) {
@@ -33,11 +33,17 @@ const dashBoard = async (req, res) => {
   }
   const token = authArray[1];
 
-  const luckyNumber = Math.round(Math.random() * 10);
-  res.status(200).json({
-    msg: "Hello, john cena",
-    secret: `here is your authorized data, your lucky number is ${luckyNumber}`,
-  });
+  try {
+    // decoded the token
+    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+    const luckyNumber = Math.round(Math.random() * 10);
+    res.status(200).json({
+      msg: `Hello, ${decodedToken.username}`,
+      secret: `here is your authorized data, your lucky number is ${luckyNumber}`,
+    });
+  } catch (error) {
+    throw new customError("Not authorized to access this route", 401);
+  }
 };
 
 module.exports = {
